@@ -56,13 +56,19 @@ export const signUp = async (email: string, password: string, userData: Record<s
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     
-    // Create user profile in Firestore
-    await setDoc(doc(db, "users", user.uid), {
+    // Create user profile in Firestore (in both users and profiles collections)
+    const userProfile = {
       ...userData,
       email,
       createdAt: serverTimestamp(),
-      role: "staff", // Default role
-    });
+      role: "viewer", // Default role for new users
+    };
+    
+    // Save to users collection (for backward compatibility)
+    await setDoc(doc(db, "users", user.uid), userProfile);
+    
+    // Also save to profiles collection
+    await setDoc(doc(db, "profiles", user.uid), userProfile);
     
     return { user, error: null };
   } catch (error) {

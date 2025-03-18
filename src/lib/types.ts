@@ -14,6 +14,13 @@ export interface User {
   createdAt: Timestamp | Date;
 }
 
+export interface UserProfile extends User {
+  // Add any additional profile-specific fields here
+  phoneNumber?: string;
+  address?: string;
+  bio?: string;
+}
+
 export type UserRole = "admin" | "staff" | "operator" | "viewer";
 
 export interface Letter {

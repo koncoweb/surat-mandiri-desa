@@ -1,12 +1,13 @@
-
 import React, { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { auth } from "@/lib/firebase";
 import LoginForm from "@/components/auth/login-form";
+import SignupForm from "@/components/auth/signup-form";
 
 const Auth: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -133,15 +134,41 @@ const Auth: React.FC = () => {
                 Sistem Surat Elektronik Desa
               </h1>
               <p className="text-muted-foreground">
-                Silakan masuk untuk melanjutkan
+                {authMode === "login" ? "Silakan masuk untuk melanjutkan" : "Daftar untuk membuat akun baru"}
               </p>
             </div>
             
-            <LoginForm
-              onSuccess={() => {
-                navigate("/");
-              }}
-            />
+            {authMode === "login" ? (
+              <>
+                <LoginForm onSuccess={() => navigate("/")} />
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Belum memiliki akun?{" "}
+                    <button
+                      onClick={() => setAuthMode("signup")}
+                      className="text-primary underline hover:text-primary/90 cursor-pointer"
+                    >
+                      Daftar Sekarang
+                    </button>
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <SignupForm onSuccess={() => navigate("/")} />
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Sudah memiliki akun?{" "}
+                    <button
+                      onClick={() => setAuthMode("login")}
+                      className="text-primary underline hover:text-primary/90 cursor-pointer"
+                    >
+                      Masuk
+                    </button>
+                  </p>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
