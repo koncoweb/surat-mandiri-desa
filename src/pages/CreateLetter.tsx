@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import LetterForm from "@/components/letters/letter-form";
 import FirestoreRulesHelper from "@/components/auth/firestore-rules-helper";
 import { Button } from "@/components/ui/button";
-import { InfoCircledIcon } from "@radix-ui/react-icons";
+import { InfoIcon } from "lucide-react";
 
 const CreateLetter: React.FC = () => {
   const [showRulesHelper, setShowRulesHelper] = useState(false);
@@ -17,7 +17,7 @@ const CreateLetter: React.FC = () => {
         </p>
         
         <div className="bg-amber-50 border border-amber-200 rounded-md p-4 mt-4 flex items-start">
-          <InfoCircledIcon className="h-5 w-5 text-amber-500 mr-2 mt-0.5" />
+          <InfoIcon className="h-5 w-5 text-amber-500 mr-2 mt-0.5" />
           <div>
             <h3 className="text-sm font-medium text-amber-800">Catatan Penggunaan</h3>
             <p className="text-sm text-amber-700 mt-1">
