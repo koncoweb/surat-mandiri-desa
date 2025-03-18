@@ -5,6 +5,34 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { firestoreRulesExample, simpleSignupRules, developmentRules, implementationGuide } from "@/lib/firestore-rules-example";
 
+// Rules untuk mengakses data users (penerima surat)
+const userAccessRules = `// Rules yang mengizinkan membaca data user untuk penerima surat
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Izin dasar
+    match /users/{userId} {
+      // Pengguna yang terautentikasi dapat membaca data semua pengguna
+      // Ini penting untuk fitur selector penerima di form surat
+      allow read: if request.auth != null;
+      
+      // Pengguna hanya dapat membuat/mengubah dokumen milik mereka sendiri
+      allow create, update: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Izin yang sama untuk collection profiles
+    match /profiles/{userId} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Izin untuk dokumen surat
+    match /letters/{letterId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}`;
+
 const FirestoreRulesHelper: React.FC = () => {
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -24,8 +52,9 @@ const FirestoreRulesHelper: React.FC = () => {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="signup">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="signup">Rules Signup Sederhana</TabsTrigger>
+            <TabsTrigger value="useraccess">Rules Akses User</TabsTrigger>
             <TabsTrigger value="complete">Rules Lengkap</TabsTrigger>
             <TabsTrigger value="dev">Rules Development</TabsTrigger>
           </TabsList>
@@ -40,6 +69,23 @@ const FirestoreRulesHelper: React.FC = () => {
               variant="outline"
             >
               {copied === 'signup' ? 'Tersalin!' : 'Salin Rules'}
+            </Button>
+          </TabsContent>
+          
+          <TabsContent value="useraccess" className="mt-4">
+            <div className="bg-muted p-4 rounded-md overflow-auto max-h-96">
+              <pre className="text-xs">{userAccessRules}</pre>
+            </div>
+            <div className="mt-2 text-amber-600 text-sm">
+              Rules ini mengizinkan pengguna yang terautentikasi untuk membaca data semua pengguna lain, 
+              yang diperlukan untuk fitur pemilihan penerima surat.
+            </div>
+            <Button 
+              onClick={() => copyToClipboard(userAccessRules, 'useraccess')}
+              className="mt-2"
+              variant="outline"
+            >
+              {copied === 'useraccess' ? 'Tersalin!' : 'Salin Rules'}
             </Button>
           </TabsContent>
           

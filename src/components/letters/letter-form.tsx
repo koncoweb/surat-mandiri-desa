@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Loader2, PlusCircle, Save, SendHorizontal, Trash2 } from "lucide-react";
 import { auth, createLetter, uploadFile } from "@/lib/firebase";
 import { LetterType } from "@/lib/types";
+import RecipientSelector from "./recipient-selector";
 
 const LetterForm: React.FC = () => {
   const [activeTab, setActiveTab] = useState("general");
@@ -25,7 +25,8 @@ const LetterForm: React.FC = () => {
   const [letterType, setLetterType] = useState<LetterType>("UMUM");
   const [subject, setSubject] = useState("");
   const [content, setContent] = useState("");
-  const [recipients, setRecipients] = useState<string[]>([""]);
+  const [recipient, setRecipient] = useState<string>("");
+  const [additionalRecipients, setAdditionalRecipients] = useState<string[]>([]);
   const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
   const [attachments, setAttachments] = useState<File[]>([]);
   const [notes, setNotes] = useState("");
@@ -34,20 +35,20 @@ const LetterForm: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleAddRecipient = () => {
-    setRecipients([...recipients, ""]);
+  const handleAddAdditionalRecipient = () => {
+    setAdditionalRecipients([...additionalRecipients, ""]);
   };
 
-  const handleRemoveRecipient = (index: number) => {
-    const newRecipients = [...recipients];
+  const handleRemoveAdditionalRecipient = (index: number) => {
+    const newRecipients = [...additionalRecipients];
     newRecipients.splice(index, 1);
-    setRecipients(newRecipients);
+    setAdditionalRecipients(newRecipients);
   };
 
-  const handleRecipientChange = (index: number, value: string) => {
-    const newRecipients = [...recipients];
+  const handleAdditionalRecipientChange = (index: number, value: string) => {
+    const newRecipients = [...additionalRecipients];
     newRecipients[index] = value;
-    setRecipients(newRecipients);
+    setAdditionalRecipients(newRecipients);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,8 +87,15 @@ const LetterForm: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Filter out empty recipients
-      const filteredRecipients = recipients.filter(r => r.trim() !== "");
+      // Combine main recipient with additional recipients
+      const allRecipients: string[] = [];
+      if (recipient) {
+        allRecipients.push(recipient);
+      }
+      
+      // Add additional recipients if any
+      const filteredAdditionalRecipients = additionalRecipients.filter(r => r.trim() !== "");
+      allRecipients.push(...filteredAdditionalRecipients);
       
       // Upload attachments if any
       const uploadedAttachments = [];
@@ -118,7 +126,7 @@ const LetterForm: React.FC = () => {
         type: letterType,
         subject,
         content,
-        recipients: filteredRecipients,
+        recipients: allRecipients,
         priority,
         status,
         notes,
@@ -263,13 +271,19 @@ const LetterForm: React.FC = () => {
           <Card>
             <CardContent className="pt-6">
               <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <Label>Penerima Surat</Label>
+                <RecipientSelector 
+                  value={recipient}
+                  onChange={setRecipient}
+                  label="Penerima Utama"
+                />
+                
+                <div className="flex justify-between items-center mt-6">
+                  <Label>Penerima Tambahan</Label>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={handleAddRecipient}
+                    onClick={handleAddAdditionalRecipient}
                     className="flex items-center text-xs"
                   >
                     <PlusCircle className="h-3.5 w-3.5 mr-1" />
@@ -277,26 +291,24 @@ const LetterForm: React.FC = () => {
                   </Button>
                 </div>
                 
-                {recipients.map((recipient, index) => (
+                {additionalRecipients.map((additionalRecipient, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <Input
-                      value={recipient}
-                      onChange={(e) => handleRecipientChange(index, e.target.value)}
+                      value={additionalRecipient}
+                      onChange={(e) => handleAdditionalRecipientChange(index, e.target.value)}
                       placeholder="Nama penerima atau instansi"
                       className="flex-1"
                     />
-                    {recipients.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemoveRecipient(index)}
-                        className="h-9 w-9"
-                      >
-                        <Trash2 className="h-4 w-4 text-muted-foreground" />
-                        <span className="sr-only">Hapus penerima</span>
-                      </Button>
-                    )}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleRemoveAdditionalRecipient(index)}
+                      className="h-9 w-9"
+                    >
+                      <Trash2 className="h-4 w-4 text-muted-foreground" />
+                      <span className="sr-only">Hapus penerima</span>
+                    </Button>
                   </div>
                 ))}
               </div>
