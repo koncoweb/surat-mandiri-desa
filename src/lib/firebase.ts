@@ -1,4 +1,3 @@
-
 import { initializeApp } from "firebase/app";
 import { 
   getAuth, 
@@ -167,7 +166,7 @@ export const createLetter = async (letterData: Record<string, any>, userId: stri
     
     // Create new letter document
     const newLetterRef = doc(collection(db, "letters"));
-    await setDoc(newLetterRef, {
+    const letterToSave = {
       ...letterData,
       letterNumber,
       number: nextNumber,
@@ -177,7 +176,9 @@ export const createLetter = async (letterData: Record<string, any>, userId: stri
       createdAt: serverTimestamp(),
       status: "draft",
       id: newLetterRef.id
-    });
+    };
+    
+    await setDoc(newLetterRef, letterToSave);
     
     return { id: newLetterRef.id, letterNumber, error: null };
   } catch (error) {
@@ -201,13 +202,31 @@ export const getLetters = async (filters = {}) => {
     }
     
     const querySnapshot = await getDocs(q);
-    const letters = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt instanceof Timestamp 
-        ? doc.data().createdAt.toDate() 
-        : doc.data().createdAt
-    }));
+    const letters = querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      // Ensure each letter has all required fields
+      return {
+        id: doc.id,
+        letterNumber: data.letterNumber || '',
+        number: data.number || 0,
+        year: data.year || 0,
+        month: data.month || '',
+        type: data.type || 'UMUM',
+        subject: data.subject || '',
+        content: data.content || '',
+        recipients: data.recipients || [],
+        status: data.status || 'draft',
+        createdBy: data.createdBy || '',
+        createdAt: data.createdAt || new Date(),
+        approvedBy: data.approvedBy,
+        approvedAt: data.approvedAt,
+        sentAt: data.sentAt,
+        signatureURL: data.signatureURL,
+        notes: data.notes,
+        priority: data.priority,
+        attachments: data.attachments || []
+      };
+    });
     
     return { letters, error: null };
   } catch (error) {

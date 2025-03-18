@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { getLetters } from "@/lib/firebase";
 import LetterCard from "@/components/ui/letter-card";
-import { Letter, LetterStatus, LetterType } from "@/lib/types";
+import { Letter, LetterStatus, LetterType, toDate } from "@/lib/types";
 import {
   FilePlus,
   ArrowUpDown,
@@ -60,16 +60,19 @@ const Letters: React.FC = () => {
         }
         
         if (fetchedLetters) {
-          // Ensure all fields required by the Letter type are present
-          const validLetters = fetchedLetters.filter(letter => 
-            letter.letterNumber && 
-            letter.number && 
-            letter.year && 
-            letter.month && 
-            letter.type && 
-            letter.subject && 
-            letter.content && 
-            letter.recipients
+          // Ensure all fetched letters have the required fields by type checking
+          const validLetters = fetchedLetters.filter((letter: any) => 
+            letter && 
+            typeof letter === 'object' &&
+            'letterNumber' in letter && 
+            'number' in letter && 
+            'year' in letter && 
+            'month' in letter && 
+            'type' in letter && 
+            'subject' in letter && 
+            'content' in letter && 
+            'recipients' in letter &&
+            'createdAt' in letter
           ) as Letter[];
           
           setLetters(validLetters);
@@ -97,8 +100,8 @@ const Letters: React.FC = () => {
       );
     })
     .sort((a, b) => {
-      const dateA = a.createdAt instanceof Date ? a.createdAt : a.createdAt.toDate();
-      const dateB = b.createdAt instanceof Date ? b.createdAt : b.createdAt.toDate();
+      const dateA = toDate(a.createdAt);
+      const dateB = toDate(b.createdAt);
       
       if (sortBy === "newest") {
         return dateB.getTime() - dateA.getTime();
