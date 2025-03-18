@@ -1,13 +1,12 @@
 
 import React, { useState, useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import { auth } from "@/lib/firebase";
-import Navbar from "@/components/layout/navbar";
-import Sidebar from "@/components/layout/sidebar";
-import Dashboard from "./Dashboard";
+import Navbar from "./navbar";
+import Sidebar from "./sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-const Index: React.FC = () => {
+const Layout: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const isMobile = useIsMobile();
@@ -56,7 +55,7 @@ const Index: React.FC = () => {
           }`}
         >
           <div className="container py-6 space-y-6">
-            <Dashboard />
+            <Outlet />
           </div>
         </main>
       </div>
@@ -64,4 +63,4 @@ const Index: React.FC = () => {
   );
 };
 
-export default Index;
+export default Layout;
