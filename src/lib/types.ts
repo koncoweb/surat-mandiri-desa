@@ -81,6 +81,18 @@ export interface VillageSettings {
   footer?: string;
 }
 
+// Helper functions to work with Timestamp
+export const isTimestamp = (value: any): value is Timestamp => {
+  return value && typeof value === 'object' && 'toDate' in value && typeof value.toDate === 'function';
+};
+
+export const toDate = (value: Timestamp | Date): Date => {
+  if (isTimestamp(value)) {
+    return value.toDate();
+  }
+  return value;
+};
+
 // Application state types
 export interface AuthState {
   user: User | null;

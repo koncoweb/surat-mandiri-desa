@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Letter } from "@/lib/types";
+import { Letter, isTimestamp } from "@/lib/types";
 
 interface LetterCardProps {
   letter: Letter;
@@ -58,15 +58,15 @@ const LetterCard: React.FC<LetterCardProps> = ({ letter }) => {
   const formatDate = (date: Date | any) => {
     if (!date) return "-";
     
-    if (typeof date === "string") {
-      date = new Date(date);
-    }
+    // Convert Timestamp to Date if necessary
+    const dateObj = isTimestamp(date) ? date.toDate() : 
+                    typeof date === "string" ? new Date(date) : date;
     
     return new Intl.DateTimeFormat("id-ID", {
       day: "numeric",
       month: "long",
       year: "numeric",
-    }).format(date);
+    }).format(dateObj);
   };
 
   return (

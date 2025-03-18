@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { getLetters } from "@/lib/firebase";
 import LetterCard from "@/components/ui/letter-card";
-import { Letter } from "@/lib/types";
+import { Letter, LetterStatus, LetterType } from "@/lib/types";
 import {
   FilePlus,
   ArrowUpDown,
@@ -52,15 +52,27 @@ const Letters: React.FC = () => {
           filters.type = typeFilter;
         }
         
-        const { letters, error } = await getLetters(filters);
+        const { letters: fetchedLetters, error } = await getLetters(filters);
         
         if (error) {
           console.error("Error fetching letters:", error);
           return;
         }
         
-        if (letters) {
-          setLetters(letters);
+        if (fetchedLetters) {
+          // Ensure all fields required by the Letter type are present
+          const validLetters = fetchedLetters.filter(letter => 
+            letter.letterNumber && 
+            letter.number && 
+            letter.year && 
+            letter.month && 
+            letter.type && 
+            letter.subject && 
+            letter.content && 
+            letter.recipients
+          ) as Letter[];
+          
+          setLetters(validLetters);
         }
       } catch (error) {
         console.error("Error in fetchLetters:", error);
@@ -85,10 +97,13 @@ const Letters: React.FC = () => {
       );
     })
     .sort((a, b) => {
+      const dateA = a.createdAt instanceof Date ? a.createdAt : a.createdAt.toDate();
+      const dateB = b.createdAt instanceof Date ? b.createdAt : b.createdAt.toDate();
+      
       if (sortBy === "newest") {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return dateB.getTime() - dateA.getTime();
       } else if (sortBy === "oldest") {
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        return dateA.getTime() - dateB.getTime();
       } else if (sortBy === "alphabetical") {
         return a.subject.localeCompare(b.subject);
       }
@@ -103,7 +118,7 @@ const Letters: React.FC = () => {
       }
       return acc;
     },
-    { draft: 0, pending: 0, approved: 0, rejected: 0, sent: 0, archived: 0 } as Record<string, number>
+    { draft: 0, pending: 0, approved: 0, rejected: 0, sent: 0, archived: 0 } as Record<LetterStatus, number>
   );
 
   // Simulate loading state for demo
@@ -118,11 +133,11 @@ const Letters: React.FC = () => {
             number: 1,
             year: 2023,
             month: "07",
-            type: "UMUM",
+            type: "UMUM" as LetterType,
             subject: "Undangan Rapat Desa",
             content: "<p>Dengan hormat, kami mengundang Bapak/Ibu untuk menghadiri rapat desa pada...</p>",
             recipients: ["Kepala Dusun", "Ketua RT/RW", "Tokoh Masyarakat"],
-            status: "approved",
+            status: "approved" as LetterStatus,
             createdBy: "user1",
             createdAt: new Date(2023, 6, 15),
             approvedBy: "admin1",
@@ -135,11 +150,11 @@ const Letters: React.FC = () => {
             number: 2,
             year: 2023,
             month: "07",
-            type: "PENGUMUMAN",
+            type: "PENGUMUMAN" as LetterType,
             subject: "Pengumuman Jadwal Posyandu",
             content: "<p>Diumumkan kepada seluruh warga desa bahwa kegiatan Posyandu akan dilaksanakan pada...</p>",
             recipients: ["Seluruh Warga Desa"],
-            status: "sent",
+            status: "sent" as LetterStatus,
             createdBy: "user2",
             createdAt: new Date(2023, 6, 18),
             approvedBy: "admin1",
@@ -153,11 +168,11 @@ const Letters: React.FC = () => {
             number: 3,
             year: 2023,
             month: "07",
-            type: "KETERANGAN",
+            type: "KETERANGAN" as LetterType,
             subject: "Surat Keterangan Domisili",
             content: "<p>Yang bertanda tangan di bawah ini menerangkan bahwa...</p>",
             recipients: ["Budi Santoso"],
-            status: "draft",
+            status: "draft" as LetterStatus,
             createdBy: "user3",
             createdAt: new Date(2023, 6, 22),
             priority: "low"
