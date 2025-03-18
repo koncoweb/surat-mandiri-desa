@@ -1,3 +1,4 @@
+
 import { initializeApp } from "firebase/app";
 import { 
   getAuth, 
@@ -63,11 +64,24 @@ export const signUp = async (email: string, password: string, userData: Record<s
       role: "viewer", // Default role for new users
     };
     
-    // Save to users collection (for backward compatibility)
-    await setDoc(doc(db, "users", user.uid), userProfile);
-    
-    // Also save to profiles collection
-    await setDoc(doc(db, "profiles", user.uid), userProfile);
+    try {
+      // Save to users collection (for backward compatibility)
+      await setDoc(doc(db, "users", user.uid), userProfile);
+      
+      // Also save to profiles collection
+      await setDoc(doc(db, "profiles", user.uid), userProfile);
+      
+      console.log("User profile created successfully");
+    } catch (firestoreError) {
+      // If saving to Firestore fails, log the error but still return the user
+      console.error("Error saving user data to Firestore:", firestoreError);
+      // Return success with the user but include the Firestore error
+      return { 
+        user, 
+        error: null, 
+        firestoreError 
+      };
+    }
     
     return { user, error: null };
   } catch (error) {

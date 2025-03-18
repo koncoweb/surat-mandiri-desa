@@ -1,13 +1,16 @@
+
 import React, { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { auth } from "@/lib/firebase";
 import LoginForm from "@/components/auth/login-form";
 import SignupForm from "@/components/auth/signup-form";
+import FirestoreRulesHelper from "@/components/auth/firestore-rules-helper";
 
 const Auth: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const [showRulesHelper, setShowRulesHelper] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -156,7 +159,7 @@ const Auth: React.FC = () => {
             ) : (
               <>
                 <SignupForm onSuccess={() => navigate("/")} />
-                <div className="text-center">
+                <div className="text-center space-y-2">
                   <p className="text-sm text-muted-foreground">
                     Sudah memiliki akun?{" "}
                     <button
@@ -166,12 +169,22 @@ const Auth: React.FC = () => {
                       Masuk
                     </button>
                   </p>
+                  <p className="text-xs text-muted-foreground">
+                    <button
+                      onClick={() => setShowRulesHelper(!showRulesHelper)}
+                      className="text-primary underline hover:text-primary/90 cursor-pointer"
+                    >
+                      {showRulesHelper ? "Sembunyikan" : "Lihat"} panduan konfigurasi Firestore Rules
+                    </button>
+                  </p>
                 </div>
               </>
             )}
           </div>
         </div>
       </div>
+      
+      {showRulesHelper && <FirestoreRulesHelper />}
     </div>
   );
 };

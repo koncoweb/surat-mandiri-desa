@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { EyeIcon, EyeOffIcon, Loader2 } from "lucide-react";
+import { EyeIcon, EyeOffIcon, Loader2, AlertCircle } from "lucide-react";
 import { signUp } from "@/lib/firebase";
 import { useToast } from "@/components/ui/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface SignupFormProps {
   onSuccess?: () => void;
@@ -20,11 +21,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [firestoreError, setFirestoreError] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFirestoreError(null);
     
     if (!displayName || !email || !password || !confirmPassword) {
       toast({
@@ -61,7 +64,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
         role: "viewer", // Default role for new users
       };
       
-      const { user, error } = await signUp(email, password, userData);
+      const result = await signUp(email, password, userData);
+      const { user, error, firestoreError: fsError } = result as any;
       
       if (error) {
         let errorMessage = "Terjadi kesalahan saat mendaftar. Coba lagi.";
@@ -81,6 +85,15 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
         toast({
           title: "Pendaftaran gagal",
           description: errorMessage,
+          variant: "destructive",
+        });
+      } else if (fsError) {
+        // Handle Firestore error specifically
+        setFirestoreError("Akun berhasil dibuat, tetapi ada masalah dengan penyimpanan data profil. Harap periksa konfigurasi Firestore Rules.");
+        
+        toast({
+          title: "Perhatian",
+          description: "Akun berhasil dibuat tetapi dengan batasan. Lihat pesan di bawah form.",
           variant: "destructive",
         });
       } else if (user) {
@@ -195,6 +208,16 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
               />
             </div>
           </div>
+          
+          {firestoreError && (
+            <Alert variant="destructive" className="my-2">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Peringatan</AlertTitle>
+              <AlertDescription>
+                {firestoreError}
+              </AlertDescription>
+            </Alert>
+          )}
           
           <Button
             type="submit"
