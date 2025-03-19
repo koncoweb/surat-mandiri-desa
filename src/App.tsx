@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import Layout from "./components/layout/layout";
 import Dashboard from "./pages/Dashboard";
 import Letters from "./pages/Letters";
+import LetterDetail from "./pages/LetterDetail";
 import CreateLetter from "./pages/CreateLetter";
 import Settings from "./pages/Settings";
 
@@ -49,6 +50,7 @@ const App = () => {
             <Route path="/" element={<Layout />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/letters" element={<Letters />} />
+              <Route path="/letters/:id" element={<LetterDetail />} />
               <Route path="/create-letter" element={<CreateLetter />} />
               <Route path="/settings" element={<Settings />} />
               {/* Add more routes as needed */}
