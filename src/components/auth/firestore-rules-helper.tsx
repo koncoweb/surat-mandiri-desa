@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { firestoreRulesExample, simpleSignupRules, developmentRules, implementationGuide } from "@/lib/firestore-rules-example";
+import { firestoreRulesExample, simpleSignupRules, developmentRules, implementationGuide, villageProfileRules } from "@/lib/firestore-rules-example";
 
 // Rules untuk mengakses data users (penerima surat)
 const userAccessRules = `// Rules yang mengizinkan membaca data user untuk penerima surat
@@ -30,6 +30,16 @@ service cloud.firestore {
     match /letters/{letterId} {
       allow read, write: if request.auth != null;
     }
+    
+    // Izin untuk pengaturan desa (village profile)
+    match /settings/village {
+      // Semua pengguna dapat membaca pengaturan desa
+      allow read: if request.auth != null;
+      
+      // Hanya admin yang dapat mengubah pengaturan desa
+      allow write: if request.auth != null && 
+                     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
   }
 }`;
 
@@ -52,11 +62,12 @@ const FirestoreRulesHelper: React.FC = () => {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="signup">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="signup">Rules Signup Sederhana</TabsTrigger>
-            <TabsTrigger value="useraccess">Rules Akses User</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="signup">Rules Signup</TabsTrigger>
+            <TabsTrigger value="useraccess">Rules User</TabsTrigger>
+            <TabsTrigger value="village">Rules Profil Desa</TabsTrigger>
             <TabsTrigger value="complete">Rules Lengkap</TabsTrigger>
-            <TabsTrigger value="dev">Rules Development</TabsTrigger>
+            <TabsTrigger value="dev">Rules Dev</TabsTrigger>
           </TabsList>
           
           <TabsContent value="signup" className="mt-4">
@@ -86,6 +97,23 @@ const FirestoreRulesHelper: React.FC = () => {
               variant="outline"
             >
               {copied === 'useraccess' ? 'Tersalin!' : 'Salin Rules'}
+            </Button>
+          </TabsContent>
+          
+          <TabsContent value="village" className="mt-4">
+            <div className="bg-muted p-4 rounded-md overflow-auto max-h-96">
+              <pre className="text-xs">{villageProfileRules}</pre>
+            </div>
+            <div className="mt-2 text-amber-600 text-sm">
+              Rules ini mengizinkan hanya pengguna admin untuk mengubah profil desa, 
+              namun semua pengguna dapat membacanya untuk keperluan surat.
+            </div>
+            <Button 
+              onClick={() => copyToClipboard(villageProfileRules, 'village')}
+              className="mt-2"
+              variant="outline"
+            >
+              {copied === 'village' ? 'Tersalin!' : 'Salin Rules'}
             </Button>
           </TabsContent>
           

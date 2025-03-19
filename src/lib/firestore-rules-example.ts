@@ -51,6 +51,16 @@ service cloud.firestore {
                      request.auth.uid == userId;
     }
 
+    // Rules for settings collection (village profile)
+    match /settings/{document} {
+      // Only authenticated users with admin role can write to settings
+      allow write: if request.auth != null && 
+                    get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      
+      // Any authenticated user can read settings
+      allow read: if request.auth != null;
+    }
+
     // Read-only access to specific collections for authenticated users
     match /letters/{letterId} {
       allow read: if request.auth != null;
@@ -90,6 +100,13 @@ service cloud.firestore {
       allow read: if request.auth != null;
     }
     
+    // Rules for settings collection
+    match /settings/{document} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+                    get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+    
     // For letters and other collections, add appropriate rules
     match /letters/{document=**} {
       allow read, write: if request.auth != null;
@@ -115,6 +132,27 @@ service cloud.firestore {
 `;
 
 /**
+ * Specific rules for the village profile settings
+ */
+export const villageProfileRules = `
+// Village profile settings rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Settings collection (village profile)
+    match /settings/village {
+      // Only authenticated users with admin role can modify village settings
+      allow write: if request.auth != null && 
+                     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      
+      // All authenticated users can read village settings (needed for letters)
+      allow read: if request.auth != null;
+    }
+  }
+}
+`;
+
+/**
  * Instructions for implementing these rules
  */
 export const implementationGuide = `
@@ -129,4 +167,10 @@ Instruksi Menerapkan Rules Firestore:
 
 Untuk development, Anda dapat menggunakan rules pengembangan sementara.
 Untuk produksi, gunakan rules yang lebih ketat seperti contoh pertama.
+
+Panduan Implementasi Khusus untuk Village Profile:
+1. Pastikan collection users memiliki field "role" untuk pengguna admin
+2. Hanya pengguna dengan role "admin" yang dapat mengubah pengaturan desa
+3. Semua pengguna yang terautentikasi dapat melihat pengaturan desa untuk keperluan pembuatan surat
 `;
+
