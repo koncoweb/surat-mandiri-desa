@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Save, Upload, Building } from "lucide-react";
 import { db, storage, auth } from "@/lib/firebase";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import VillageLetterhead from "@/components/letters/village-letterhead";
 
@@ -62,7 +62,7 @@ const VillageProfile: React.FC = () => {
           setVillageData({ ...villageData, ...villageDoc.data() as VillageData });
         } else {
           // If no document exists, create one with default values
-          await setDoc(villageDocRef, villageData);
+          await setDoc(villageDocRef, { ...villageData });
         }
       } catch (error) {
         console.error("Error fetching village data:", error);
@@ -122,7 +122,11 @@ const VillageProfile: React.FC = () => {
     
     try {
       const villageDocRef = doc(db, "settings", "village");
-      await updateDoc(villageDocRef, villageData);
+      
+      // Convert villageData to a plain object before sending to Firestore
+      const plainData = { ...villageData };
+      
+      await setDoc(villageDocRef, plainData);
       
       toast({
         title: "Berhasil",
