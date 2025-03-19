@@ -15,6 +15,7 @@ import Letters from "./pages/Letters";
 import LetterDetail from "./pages/LetterDetail";
 import CreateLetter from "./pages/CreateLetter";
 import Settings from "./pages/Settings";
+import VillageProfile from "./pages/VillageProfile";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,7 @@ const App = () => {
               <Route path="/letters/:id" element={<LetterDetail />} />
               <Route path="/create-letter" element={<CreateLetter />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/village-profile" element={<VillageProfile />} />
               {/* Add more routes as needed */}
             </Route>
             
