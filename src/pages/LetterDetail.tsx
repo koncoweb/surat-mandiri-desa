@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getLetter } from "@/lib/firebase";
+import { getLetter, db } from "@/lib/firebase";
 import { Letter } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import VillageLetterhead from "@/components/letters/village-letterhead";
 import { Timestamp } from "firebase/firestore";
+import { getDoc, doc } from "firebase/firestore";
 
 const LetterDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,6 +34,7 @@ const LetterDetail: React.FC = () => {
   const [letter, setLetter] = useState<Letter | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [recipientNames, setRecipientNames] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const fetchLetter = async () => {
@@ -50,6 +52,10 @@ const LetterDetail: React.FC = () => {
         
         if (fetchedLetter) {
           setLetter(fetchedLetter);
+          // Fetch recipient names after setting the letter
+          if (fetchedLetter.recipients?.length > 0) {
+            fetchRecipientNames(fetchedLetter.recipients);
+          }
         } else {
           setError("Surat tidak ditemukan");
         }
@@ -63,6 +69,35 @@ const LetterDetail: React.FC = () => {
 
     fetchLetter();
   }, [id]);
+
+  // New function to fetch recipient names
+  const fetchRecipientNames = async (recipientIds: string[]) => {
+    const namesMap: Record<string, string> = {};
+    
+    try {
+      // Using Promise.all to fetch all user data in parallel
+      await Promise.all(
+        recipientIds.map(async (userId) => {
+          try {
+            const userDoc = await getDoc(doc(db, "users", userId));
+            if (userDoc.exists()) {
+              const userData = userDoc.data();
+              namesMap[userId] = userData.displayName || userData.email || `User ${userId.slice(0, 6)}`;
+            } else {
+              namesMap[userId] = `Unknown User (${userId.slice(0, 6)})`;
+            }
+          } catch (error) {
+            console.error(`Error fetching user ${userId}:`, error);
+            namesMap[userId] = `Error loading user (${userId.slice(0, 6)})`;
+          }
+        })
+      );
+      
+      setRecipientNames(namesMap);
+    } catch (error) {
+      console.error("Error fetching recipient names:", error);
+    }
+  };
 
   // Fix 1: Update this function to return only valid Badge variant values
   const getStatusBadgeColor = (status: string): "secondary" | "destructive" | "outline" | "default" => {
@@ -241,9 +276,9 @@ const LetterDetail: React.FC = () => {
                       Ditujukan kepada
                     </p>
                     <ul className="list-disc list-inside ml-1">
-                      {letter.recipients.map((recipient, index) => (
+                      {letter.recipients.map((recipientId, index) => (
                         <li key={index} className="font-medium">
-                          {recipient}
+                          {recipientNames[recipientId] || `Memuat... (${recipientId.slice(0, 6)})`}
                         </li>
                       ))}
                     </ul>
@@ -277,8 +312,10 @@ const LetterDetail: React.FC = () => {
                   <div>
                     <p>Kepada Yth,</p>
                     <ul className="list-disc ml-8 my-2">
-                      {letter.recipients.map((recipient, index) => (
-                        <li key={index}>{recipient}</li>
+                      {letter.recipients.map((recipientId, index) => (
+                        <li key={index}>
+                          {recipientNames[recipientId] || `Memuat... (${recipientId.slice(0, 6)})`}
+                        </li>
                       ))}
                     </ul>
                     <p>di Tempat</p>
