@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import VillageLetterhead from "@/components/letters/village-letterhead";
+import { Timestamp } from "firebase/firestore";
 
 const LetterDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -63,18 +64,19 @@ const LetterDetail: React.FC = () => {
     fetchLetter();
   }, [id]);
 
-  const getStatusBadgeColor = (status: string) => {
+  // Fix 1: Update this function to return only valid Badge variant values
+  const getStatusBadgeColor = (status: string): "secondary" | "destructive" | "outline" | "default" => {
     switch (status) {
       case "draft":
         return "secondary";
       case "pending":
-        return "warning";
+        return "default"; // Instead of "warning"
       case "approved":
-        return "success";
+        return "default"; // Instead of "success"
       case "rejected":
         return "destructive";
       case "sent":
-        return "blue";
+        return "outline"; // Instead of "blue"
       case "archived":
         return "outline";
       default:
@@ -82,7 +84,15 @@ const LetterDetail: React.FC = () => {
     }
   };
 
-  const formatDate = (date: Date) => {
+  // Fix 2: Handle Timestamp objects properly
+  const formatDate = (dateOrTimestamp: Date | Timestamp | undefined) => {
+    if (!dateOrTimestamp) return "";
+    
+    // Convert Timestamp to Date if needed
+    const date = dateOrTimestamp instanceof Timestamp 
+      ? dateOrTimestamp.toDate() 
+      : dateOrTimestamp;
+    
     return new Intl.DateTimeFormat("id-ID", {
       day: "numeric",
       month: "long",
@@ -211,7 +221,7 @@ const LetterDetail: React.FC = () => {
                     <div>
                       <p className="text-sm text-muted-foreground">Tanggal</p>
                       <p className="font-medium">
-                        {formatDate(new Date(letter.createdAt))}
+                        {formatDate(letter.createdAt)}
                       </p>
                     </div>
                   </div>
@@ -321,7 +331,7 @@ const LetterDetail: React.FC = () => {
                     <div>
                       <p className="font-medium">Surat dibuat</p>
                       <p className="text-sm text-muted-foreground">
-                        {formatDate(new Date(letter.createdAt))}
+                        {formatDate(letter.createdAt)}
                       </p>
                     </div>
                   </div>
@@ -334,7 +344,7 @@ const LetterDetail: React.FC = () => {
                       <div>
                         <p className="font-medium">Surat disetujui</p>
                         <p className="text-sm text-muted-foreground">
-                          {formatDate(new Date(letter.approvedAt))}
+                          {formatDate(letter.approvedAt)}
                         </p>
                       </div>
                     </div>
@@ -348,7 +358,7 @@ const LetterDetail: React.FC = () => {
                       <div>
                         <p className="font-medium">Surat dikirim</p>
                         <p className="text-sm text-muted-foreground">
-                          {formatDate(new Date(letter.sentAt))}
+                          {formatDate(letter.sentAt)}
                         </p>
                       </div>
                     </div>
