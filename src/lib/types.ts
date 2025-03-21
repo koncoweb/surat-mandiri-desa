@@ -68,6 +68,23 @@ export interface Attachment {
   uploadedAt: Timestamp | Date;
 }
 
+export interface VillageData {
+  name: string;
+  code: string;
+  address: string;
+  district: string;
+  regency: string;
+  province: string;
+  postalCode: string;
+  phone: string;
+  email: string;
+  website?: string;
+  headName: string;
+  headPosition: string;
+  villageLogo?: string;
+  regencyLogo?: string;
+}
+
 export interface VillageSettings {
   id: string;
   name: string;
