@@ -40,7 +40,7 @@ const Auth: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <div className="flex-1 grid grid-cols-1 md:grid-cols-2">
-        <div className="hidden md:flex bg-primary md:bg-gradient-to-br from-primary to-primary/80 items-center justify-center p-8">
+        <div className="hidden md:flex bg-blue-600 md:bg-gradient-to-br from-blue-600 to-blue-900 items-center justify-center p-8">
           <div className="max-w-md space-y-4 text-center">
             <div className="space-y-2">
               <h1 className="text-3xl font-bold tracking-tighter text-primary-foreground">

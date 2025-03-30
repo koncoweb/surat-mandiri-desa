@@ -113,6 +113,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
                 variant="link" 
                 size="sm" 
                 className="h-auto p-0 text-xs"
+                onClick={() => navigate("/auth/forgot-password")}
               >
                 Lupa password?
               </Button>

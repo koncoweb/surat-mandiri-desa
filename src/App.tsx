@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import Index from "./pages/Index";
 import AuthPage from "./pages/Auth";
+import ForgotPassword from "./pages/ForgotPassword";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/layout/layout";
 import Dashboard from "./pages/Dashboard";
@@ -47,6 +48,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/auth/forgot-password" element={<ForgotPassword />} />
             
             <Route path="/" element={<Layout />}>
               <Route path="/dashboard" element={<Dashboard />} />
